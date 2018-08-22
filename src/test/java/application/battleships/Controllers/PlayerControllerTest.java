@@ -46,4 +46,16 @@ public class PlayerControllerTest {
         when(playerModel.getEmail()).thenReturn(email);
         return playerModel;
     }
+
+    @Test
+    public void testPlayerProfile(){
+        //given
+        PlayerModel playerModel = playerModelWithNameAndEmail("testName", "testEmail");
+        when(playerService.getPlayerById(1)).thenReturn(playerModel);
+        //when
+        ResponseEntity<Map<String, Object>> response = playerController.playerProfile(1);
+        //then
+        assertTrue("testName".equals(response.getBody().get("name")));
+        assertTrue("testEmail".equals(response.getBody().get("email")));
+    }
 }

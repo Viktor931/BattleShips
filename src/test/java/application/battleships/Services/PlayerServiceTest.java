@@ -1,6 +1,7 @@
 package application.battleships.Services;
 
 
+import application.battleships.Exceptions.WrongPlayerIdException;
 import application.battleships.Exceptions.WrongPlayerNameException;
 import application.battleships.Models.PlayerModel;
 import application.battleships.Repsoitories.PlayerModelRepository;
@@ -27,12 +28,12 @@ public class PlayerServiceTest {
     private PlayerModelRepository playerModelRepository;
 
     @Before
-    public void setUp(){
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
     }
 
     @Test
-    public void testGetPlayerWithCorrectName(){
+    public void testGetPlayerWithCorrectName() {
         //given
         Optional<PlayerModel> playerModelOptional = playerModelWithName("testName");
         when(playerModelRepository.findByEmail("testEmail")).thenReturn(playerModelOptional);
@@ -42,8 +43,8 @@ public class PlayerServiceTest {
         assertTrue("testName".equals(playerModel.getName()));
     }
 
-    @Test (expected = WrongPlayerNameException.class)
-    public void testGetPlayerWithWrongName(){
+    @Test(expected = WrongPlayerNameException.class)
+    public void testGetPlayerWithWrongName() {
         //given
         Optional<PlayerModel> playerModelOptional = playerModelWithName("testName");
         when(playerModelRepository.findByEmail("testEmail")).thenReturn(playerModelOptional);
@@ -60,12 +61,33 @@ public class PlayerServiceTest {
     }
 
     @Test
-    public void testGetPlayerCreation(){
+    public void testGetPlayerCreation() {
         //given
         when(playerModelRepository.findByEmail("testEmail")).thenReturn(Optional.empty());
         //when
         playerService.getPlayer("testName", "testEmail");
         //then
         verify(playerModelRepository, times(1)).save(any());
+    }
+
+    @Test
+    public void testGetPlayerById() {
+        //given
+        Optional<PlayerModel> playerModelOptional = playerModelWithName("testName");
+        when(playerModelRepository.findById(1)).thenReturn(playerModelOptional);
+        //when
+        PlayerModel playerModel = playerService.getPlayerById(1);
+        //then
+        assertTrue(playerModelOptional.get() == playerModel);
+    }
+
+    @Test(expected = WrongPlayerIdException.class)
+    public void testGetPlayerByInvalidId() {
+        //given
+        when(playerModelRepository.findById(1)).thenReturn(Optional.empty());
+        //when
+        playerService.getPlayerById(1);
+        //then
+        fail();
     }
 }

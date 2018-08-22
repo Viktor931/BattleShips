@@ -6,9 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,12 +19,23 @@ public class PlayerController {
     @PostMapping("/player")
     public ResponseEntity<Map<String, Object>> player(@RequestParam(name="name") String name, @RequestParam(name="email") String email){
         PlayerModel playerModel = playerService.getPlayer(name, email);
-        Map<String, Object> json = new HashMap<>();
-        json.put("name", playerModel.getName());
-        json.put("email", playerModel.getEmail());
+        Map<String, Object> json = createJsonForPlayerModel(playerModel);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Location", "/player/player-" + playerModel.getId());
 
-        return new ResponseEntity<Map<String, Object>>(json, headers, HttpStatus.CREATED);
+        return new ResponseEntity<>(json, headers, HttpStatus.CREATED);
+    }
+
+    private Map<String, Object> createJsonForPlayerModel(PlayerModel playerModel) {
+        Map<String, Object> json = new HashMap<>();
+        json.put("name", playerModel.getName());
+        json.put("email", playerModel.getEmail());
+        return json;
+    }
+
+    @GetMapping("/player/{id}")
+    public ResponseEntity<Map<String, Object>> playerProfile(@PathVariable long id){
+        Map<String, Object> json = createJsonForPlayerModel(playerService.getPlayerById(id));
+        return new ResponseEntity<>(json, HttpStatus.OK);
     }
 }

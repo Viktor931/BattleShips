@@ -1,5 +1,6 @@
 package application.battleships.Services;
 
+import application.battleships.Exceptions.WrongPlayerIdException;
 import application.battleships.Exceptions.WrongPlayerNameException;
 import application.battleships.Models.PlayerModel;
 import application.battleships.Repsoitories.PlayerModelRepository;
@@ -27,5 +28,13 @@ public class PlayerService {
             playerModel.setEmail(email);
             return playerModelRepository.save(playerModel);
         }
+    }
+
+    public PlayerModel getPlayerById(long id) {
+        Optional<PlayerModel> playerModelOptional = playerModelRepository.findById(id);
+        if(playerModelOptional.isPresent()){
+            return playerModelOptional.get();
+        }
+        throw new WrongPlayerIdException();
     }
 }
