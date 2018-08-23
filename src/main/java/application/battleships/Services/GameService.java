@@ -1,5 +1,6 @@
 package application.battleships.Services;
 
+import application.battleships.Exceptions.WrongGameIdException;
 import application.battleships.Exceptions.WrongPlayerIdException;
 import application.battleships.Models.CoordinatesModel;
 import application.battleships.Models.GameModel;
@@ -62,7 +63,7 @@ public class GameService {
                 ship = tryToCreateVerticalShip(shipSize, startingCoordinate, availableCoordinates);
             }
         }
-        return null;
+        return ship;
     }
 
     private ArrayList<CoordinatesModel> tryToCreateHorizontalShip(int shipSize, CoordinatesModel startingCoordinate, List<CoordinatesModel> availableCoordinates) {
@@ -141,5 +142,13 @@ public class GameService {
         boolean swap = random.nextBoolean();
         game.setPlayer1(swap ? player1ModelOptional.get() : player2ModelOptional.get());
         game.setPlayer2(swap ? player2ModelOptional.get() : player1ModelOptional.get());
+    }
+
+    public GameModel findGameById(long gameId) {
+        Optional<GameModel> gameModelOptional = gameModelRepository.findById(gameId);
+        if(gameModelOptional.isPresent()){
+            return gameModelOptional.get();
+        }
+        throw new WrongGameIdException(String.valueOf(gameId));
     }
 }

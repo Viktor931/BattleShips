@@ -5,6 +5,10 @@ import java.util.ArrayList;
 
 @Entity
 public class GameModel {
+    private static int IN_PROGRESS = 0;
+    private static int PLAYER1_WON = 1;
+    private static int PLAYER2_WON = 2;
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
@@ -12,8 +16,13 @@ public class GameModel {
     private PlayerModel player1;
     @ManyToOne
     private PlayerModel player2;
+    @Column(columnDefinition = "TEXT")
     private ArrayList<ArrayList<CoordinatesModel>> player1Ships;
+    @Column(columnDefinition = "TEXT")
     private ArrayList<ArrayList<CoordinatesModel>> player2Ships;
+    private boolean isPlayerOnesTurn = true;
+    private int status = 0;
+
 
     public long getId() {
         return id;
@@ -54,4 +63,22 @@ public class GameModel {
     public ArrayList<ArrayList<CoordinatesModel>> getPlayer2Ships() {
         return player2Ships;
     }
+
+    public long getPlayerOnTurnId() {
+        return isPlayerOnesTurn ? player1.getId() : player2.getId();
+    }
+
+    public void nextTurn(){
+        isPlayerOnesTurn = !isPlayerOnesTurn;
+    }
+
+//    public long getWinnersId(){
+//        if(status == IN_PROGRESS){
+//            return -1;
+//        }
+//        if(status == PLAYER1_WON){
+//            return player1.getId();
+//        }
+//        return player2.getId();
+//    }
 }

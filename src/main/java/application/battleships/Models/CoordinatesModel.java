@@ -1,7 +1,8 @@
 package application.battleships.Models;
 
-public class CoordinatesModel {
+import java.io.Serializable;
 
+public class CoordinatesModel implements Serializable {
     private int x;
     private int y;
 

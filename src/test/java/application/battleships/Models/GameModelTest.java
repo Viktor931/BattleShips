@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class GameModelTest {
     private GameModel gameModel = new GameModel();
@@ -65,5 +66,23 @@ public class GameModelTest {
         gameModel.setPlayer2Ships(ships);
         //then
         assertTrue(gameModel.getPlayer2Ships() == ships);
+    }
+
+    @Test
+    public void testPlayerTurns(){
+        //given
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        assertFalse(gameModel.getPlayerOnTurnId() == 2);
+        //when
+        gameModel.nextTurn();
+        //then
+        assertTrue(gameModel.getPlayerOnTurnId() == 2);
+    }
+
+    private PlayerModel playerModelMockWithId(long id) {
+        PlayerModel playerModel = mock(PlayerModel.class);
+        when(playerModel.getId()).thenReturn(id);
+        return playerModel;
     }
 }

@@ -4,6 +4,7 @@ import application.battleships.Models.GameModel;
 import application.battleships.Models.PlayerModel;
 import application.battleships.Services.GameService;
 import application.battleships.Services.PlayerService;
+import application.battleships.Util.GameDataFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,9 @@ public class PlayerController {
 
     @Autowired
     private GameService gameService;
+
+    @Autowired
+    private GameDataFormatter gameDataFormatter;
 
     @PostMapping("/player")
     public ResponseEntity<Map<String, Object>> player(@RequestParam(name = "name") String name, @RequestParam(name = "email") String email) {
@@ -55,5 +59,13 @@ public class PlayerController {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Location", "/game/" + game.getId());
         return new ResponseEntity<>(json, headers, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/player/{playerId}/game/{gameId}")
+    public ResponseEntity<Map<String, Object>> viewGame(@PathVariable long playerId, @PathVariable long gameId){
+        playerService.getPlayerById(playerId);//validates that player exists
+        GameModel game = gameService.findGameById(gameId);
+        Map<String, Object> json = gameDataFormatter.format(playerId, game);
+        return new ResponseEntity<>(json, HttpStatus.OK);
     }
 }
