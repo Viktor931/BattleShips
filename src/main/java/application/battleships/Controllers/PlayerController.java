@@ -1,6 +1,8 @@
 package application.battleships.Controllers;
 
+import application.battleships.Models.GameModel;
 import application.battleships.Models.PlayerModel;
+import application.battleships.Services.GameService;
 import application.battleships.Services.PlayerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -16,12 +18,15 @@ public class PlayerController {
     @Autowired
     private PlayerService playerService;
 
+    @Autowired
+    private GameService gameService;
+
     @PostMapping("/player")
-    public ResponseEntity<Map<String, Object>> player(@RequestParam(name="name") String name, @RequestParam(name="email") String email){
+    public ResponseEntity<Map<String, Object>> player(@RequestParam(name = "name") String name, @RequestParam(name = "email") String email) {
         PlayerModel playerModel = playerService.getPlayer(name, email);
         Map<String, Object> json = createJsonForPlayerModel(playerModel);
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", "/player/player-" + playerModel.getId());
+        headers.add("Location", "/player/" + playerModel.getId());
 
         return new ResponseEntity<>(json, headers, HttpStatus.CREATED);
     }
@@ -34,8 +39,21 @@ public class PlayerController {
     }
 
     @GetMapping("/player/{id}")
-    public ResponseEntity<Map<String, Object>> playerProfile(@PathVariable long id){
+    public ResponseEntity<Map<String, Object>> playerProfile(@PathVariable long id) {
         Map<String, Object> json = createJsonForPlayerModel(playerService.getPlayerById(id));
         return new ResponseEntity<>(json, HttpStatus.OK);
+    }
+
+    @PostMapping("/player/{opponentId}/game")
+    public ResponseEntity<Map<String, Object>> createGame(@RequestParam(name = "player_id") long playerId, @PathVariable long opponentId) {
+        GameModel game = gameService.createGame(playerId, opponentId);
+        Map<String, Object> json = new HashMap<>();
+        json.put("player_id", playerId);
+        json.put("opponent_id", opponentId);
+        json.put("game_id", game.getId());
+        json.put("starting", game.getPlayer1().getId());
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Location", "/game/" + game.getId());
+        return new ResponseEntity<>(json, headers, HttpStatus.CREATED);
     }
 }

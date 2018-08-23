@@ -1,6 +1,8 @@
 package application.battleships.Controllers;
 
+import application.battleships.Models.GameModel;
 import application.battleships.Models.PlayerModel;
+import application.battleships.Services.GameService;
 import application.battleships.Services.PlayerService;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,6 +23,9 @@ public class PlayerControllerTest {
 
     @Mock
     private PlayerService playerService;
+
+    @Mock
+    private GameService gameService;
 
     @Before
     public void setUp(){
@@ -57,5 +62,28 @@ public class PlayerControllerTest {
         //then
         assertTrue("testName".equals(response.getBody().get("name")));
         assertTrue("testEmail".equals(response.getBody().get("email")));
+    }
+
+    @Test
+    public void testCreateGame(){
+        //given
+        GameModel gameModel = createGameWithId1WithStartingPlayerWithId(1);
+        when(gameService.createGame(1, 2)).thenReturn(gameModel);
+        //when
+        ResponseEntity<Map<String, Object>> response = playerController.createGame(1, 2);
+        //then
+        assertTrue("1".equals(response.getBody().get("player_id").toString()));
+        assertTrue("2".equals(response.getBody().get("opponent_id").toString()));
+        assertTrue("1".equals(response.getBody().get("game_id").toString()));
+        assertTrue("1".equals(response.getBody().get("starting").toString()));
+    }
+
+    private GameModel createGameWithId1WithStartingPlayerWithId(long id) {
+        GameModel gameModel = mock(GameModel.class);
+        PlayerModel playerModel = mock(PlayerModel.class);
+        when(playerModel.getId()).thenReturn(id);
+        when(gameModel.getPlayer1()).thenReturn(playerModel);
+        when(gameModel.getId()).thenReturn(1L);
+        return gameModel;
     }
 }

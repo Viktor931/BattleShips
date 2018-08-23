@@ -1,5 +1,6 @@
 package application.battleships.Util;
 
+import application.battleships.Exceptions.WrongPlayerIdException;
 import application.battleships.Exceptions.WrongPlayerNameException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -19,6 +20,16 @@ public class ExceptionHandling {
         Map<String, Object> json = new HashMap<>();
         json.put("error-code", "error.username-already-taken");
         json.put("error-arg", ex.getEmail());
+        return json;
+    }
+
+    @ExceptionHandler(WrongPlayerIdException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseBody
+    public Map<String, Object> processWrongPlayerIdException(WrongPlayerIdException ex) {
+        Map<String, Object> json = new HashMap<>();
+        json.put("error-code", "error.unknown-user-id");
+        json.put("error-arg", ex.getPlayerId());
         return json;
     }
 }

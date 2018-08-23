@@ -35,6 +35,6 @@ public class PlayerService {
         if(playerModelOptional.isPresent()){
             return playerModelOptional.get();
         }
-        throw new WrongPlayerIdException();
+        throw new WrongPlayerIdException(String.valueOf(id));
     }
 }

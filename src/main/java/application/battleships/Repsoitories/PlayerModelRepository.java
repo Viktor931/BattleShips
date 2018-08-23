@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface PlayerModelRepository extends CrudRepository<PlayerModel, String> {
+public interface PlayerModelRepository extends CrudRepository<PlayerModel, Long> {
     Optional<PlayerModel> findByEmail(String email);
     Optional<PlayerModel> findById(long id);
 }
