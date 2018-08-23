@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -67,5 +68,36 @@ public class PlayerController {
         GameModel game = gameService.findGameById(gameId);
         Map<String, Object> json = gameDataFormatter.format(playerId, game);
         return new ResponseEntity<>(json, HttpStatus.OK);
+    }
+
+    @GetMapping("/player/{playerId}/game/list")
+    public ResponseEntity<Map<String, Object>> viewGames(@PathVariable long playerId){
+        playerService.getPlayerById(playerId);//validates that player exists
+        List<GameModel> games = gameService.getAllGamesForPlayer(playerId);
+        if(games.isEmpty()){
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        Map<String, Object> json = new HashMap<>();
+        json.put("games", parseGames(games, playerId));
+        return new ResponseEntity<>(json, HttpStatus.OK);
+    }
+
+    private Map<String, Object>[] parseGames(List<GameModel> games, long playerId) {
+        return games.stream().map(game -> parseGame(game, playerId)).toArray(Map[]::new);
+    }
+
+    private Map<String, Object> parseGame(GameModel gameModel, long playerId) {
+        long opponentId = gameModel.getPlayer1().getId() == playerId ? gameModel.getPlayer2().getId() : gameModel.getPlayer1().getId();
+        Map<String, Object> parsedGame = new HashMap<>();
+        parsedGame.put("game_id", gameModel.getId());
+        parsedGame.put("opponent_id", opponentId);
+        if(gameModel.getWinnersId() == playerId){
+            parsedGame.put("status", "WON");
+        } else if(gameModel.getWinnersId() == opponentId) {
+            parsedGame.put("status", "LOST");
+        } else {
+            parsedGame.put("status", "IN_PROGRESS");
+        }
+        return parsedGame;
     }
 }

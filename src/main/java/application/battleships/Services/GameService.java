@@ -151,4 +151,11 @@ public class GameService {
         }
         throw new WrongGameIdException(String.valueOf(gameId));
     }
+
+
+    public List<GameModel> getAllGamesForPlayer(long id) {
+        return gameModelRepository.findAll().stream()
+                            .filter(game -> game.getPlayer1().getId() == id || game.getPlayer2().getId() == id)
+                            .collect(Collectors.toList());
+    }
 }

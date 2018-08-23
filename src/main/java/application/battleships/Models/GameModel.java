@@ -21,7 +21,7 @@ public class GameModel {
     @Column(columnDefinition = "TEXT")
     private ArrayList<ArrayList<CoordinatesModel>> player2Ships;
     private boolean isPlayerOnesTurn = true;
-    private int status = 0;
+    private int status;
 
 
     public long getId() {
@@ -72,13 +72,17 @@ public class GameModel {
         isPlayerOnesTurn = !isPlayerOnesTurn;
     }
 
-//    public long getWinnersId(){
-//        if(status == IN_PROGRESS){
-//            return -1;
-//        }
-//        if(status == PLAYER1_WON){
-//            return player1.getId();
-//        }
-//        return player2.getId();
-//    }
+    public long getWinnersId(){
+        if(status == IN_PROGRESS){
+            return -1;
+        }
+        if(status == PLAYER1_WON){
+            return player1.getId();
+        }
+        return player2.getId();
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
 }

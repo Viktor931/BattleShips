@@ -8,11 +8,10 @@ import application.battleships.Repsoitories.GameModelRepository;
 import application.battleships.Repsoitories.PlayerModelRepository;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -89,5 +88,23 @@ public class GameServiceTest {
         gameService.findGameById(1);
         //then
         fail();
+    }
+
+    @Test
+    public void testGetAllGamesForPlayer(){
+        //given
+        Mockito.doReturn(new ArrayList<>()).when(playerModelRepository).findAll();
+        //when
+        List<GameModel> result = gameService.getAllGamesForPlayer(1);
+        //then
+        assertTrue(result.size() == 0);
+    }
+
+    private GameModel createGameWithPlayerOfId(long playerId) {
+        PlayerModel playerModel = mock(PlayerModel.class);
+        when(playerModel.getId()).thenReturn(playerId);
+        GameModel gameModel = mock(GameModel.class);
+        when(gameModel.getPlayer1()).thenReturn(playerModel);
+        return gameModel;
     }
 }

@@ -85,4 +85,36 @@ public class GameModelTest {
         when(playerModel.getId()).thenReturn(id);
         return playerModel;
     }
+
+    @Test
+    public void testGameInProgress(){
+        //given
+        gameModel.setStatus(0);//status in progress
+        //when
+        long winnersId = gameModel.getWinnersId();
+        //then
+        assertTrue(winnersId == -1);
+    }
+
+    @Test
+    public void testGamePlayer1Won(){
+        //given
+        gameModel.setStatus(1);//status player 1 won
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        //when
+        long winnersId = gameModel.getWinnersId();
+        //then
+        assertTrue(winnersId == 1);
+    }
+
+    @Test
+    public void testGamePlayer2Won(){
+        //given
+        gameModel.setStatus(2);//status player 2 won
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        //when
+        long winnersId = gameModel.getWinnersId();
+        //then
+        assertTrue(winnersId == 2);
+    }
 }

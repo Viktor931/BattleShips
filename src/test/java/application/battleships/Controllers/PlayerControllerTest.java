@@ -13,11 +13,12 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -106,5 +107,47 @@ public class PlayerControllerTest {
         //then
         assertTrue(result.getBody() == json);
         assertTrue(result.getStatusCode() == HttpStatus.OK);
+    }
+
+    @Test
+    public void testViewGames(){
+        //given
+        List<GameModel> games = createListOfGamesWithEveryStatus();
+        when(gameService.getAllGamesForPlayer(1)).thenReturn(games);
+        //when
+        ResponseEntity<Map<String, Object>> result = playerController.viewGames(1);
+        //then
+        assertTrue(result.getStatusCode() == HttpStatus.OK);
+        assertTrue(result.getBody().containsKey("games"));
+    }
+
+    private List<GameModel> createListOfGamesWithEveryStatus() {
+        List<GameModel> listOfGames = new ArrayList<>();
+        listOfGames.add(createGameWithPlayersAndWinnerId(1, 2, -1)); //status in progress
+        listOfGames.add(createGameWithPlayersAndWinnerId(1, 2, 1)); //status player 1 won
+        listOfGames.add(createGameWithPlayersAndWinnerId(1, 2, 2)); //status player 2 won
+        return listOfGames;
+    }
+
+    private GameModel createGameWithPlayersAndWinnerId(long player1Id, long player2Id, long winnerId) {
+        GameModel gameModel = mock(GameModel.class);
+        PlayerModel playerModel1 = mock(PlayerModel.class);
+        PlayerModel playerModel2 = mock(PlayerModel.class);
+        when(playerModel1.getId()).thenReturn(player1Id);
+        when(playerModel2.getId()).thenReturn(player2Id);
+        when(gameModel.getPlayer1()).thenReturn(playerModel1);
+        when(gameModel.getPlayer2()).thenReturn(playerModel2);
+        when(gameModel.getWinnersId()).thenReturn(winnerId);
+        return gameModel;
+    }
+
+    @Test
+    public void testViewGamesWithNoGames(){
+        //given
+        when(gameService.getAllGamesForPlayer(1)).thenReturn(new ArrayList<>());
+        //when
+        ResponseEntity<Map<String, Object>> result = playerController.viewGames(1);
+        //then
+        assertTrue(result.getStatusCode() == HttpStatus.NO_CONTENT);
     }
 }
