@@ -1,5 +1,6 @@
 package application.battleships.Services;
 
+import application.battleships.Exceptions.InvalidSalvoRequestException;
 import application.battleships.Exceptions.WrongGameIdException;
 import application.battleships.Exceptions.WrongPlayerIdException;
 import application.battleships.Models.CoordinatesModel;
@@ -124,9 +125,7 @@ public class GameService {
     }
 
     private CoordinatesModel createCoordinate(int x, int y) {
-        CoordinatesModel coordinates = new CoordinatesModel();
-        coordinates.setX(x);
-        coordinates.setY(y);
+        CoordinatesModel coordinates = new CoordinatesModel(x, y);
         return coordinates;
     }
 
@@ -157,5 +156,34 @@ public class GameService {
         return gameModelRepository.findAll().stream()
                             .filter(game -> game.getPlayer1().getId() == id || game.getPlayer2().getId() == id)
                             .collect(Collectors.toList());
+    }
+
+    public Map<String, String> fireShots(long playerId, long gameId, String[] shots) {
+        Optional<GameModel> game = gameModelRepository.findById(gameId);
+        if(!game.isPresent()){
+            throw new WrongGameIdException(String.valueOf(gameId));
+        }
+        if(game.get().getPlayer1().getId() == playerId && game.get().getPlayer1NotHitShipCoords().size() != shots.length){
+            throw new InvalidSalvoRequestException();
+        }
+        if(game.get().getPlayer2().getId() == playerId && game.get().getPlayer2NotHitShipCoords().size() != shots.length){
+            throw new InvalidSalvoRequestException();
+        }
+        Map<String, String> result = Arrays.stream(shots).collect(Collectors.toMap(shot -> shot, shot -> processShot(shot, playerId, game.get())));
+        game.get().nextTurn();
+        gameModelRepository.save(game.get());
+        return result;
+    }
+
+    private String processShot(String shot, long playerId, GameModel game) {
+        if(shot.length() != 3){
+            throw new InvalidSalvoRequestException();
+        }
+        int x = shot.charAt(0) - 49;
+        int y = shot.charAt(2) - 65;
+        if(x < 0 || x > 9 || y < 0 || y > 9){
+            throw new InvalidSalvoRequestException();
+        }
+        return game.fireShot(playerId, x, y);
     }
 }

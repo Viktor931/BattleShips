@@ -6,7 +6,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class CoordinatesModelTest {
-    private CoordinatesModel coordinatesModel = new CoordinatesModel();
+    private CoordinatesModel coordinatesModel = new CoordinatesModel(0, 0);
 
     @Test
     public void testX(){

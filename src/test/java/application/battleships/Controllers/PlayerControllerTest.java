@@ -13,10 +13,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -149,5 +146,29 @@ public class PlayerControllerTest {
         ResponseEntity<Map<String, Object>> result = playerController.viewGames(1);
         //then
         assertTrue(result.getStatusCode() == HttpStatus.NO_CONTENT);
+    }
+
+    @Test
+    public void testFireWinningShots(){
+        //given
+        when(gameService.findGameById(1)).thenReturn(mock(GameModel.class));
+        //when
+        ResponseEntity<Map<String, Object>> result = playerController.fireShots(1, 1, new String[]{"1xA"});
+        //then
+        assertTrue(result.getStatusCode() == HttpStatus.OK);
+        assertTrue(((HashMap) result.getBody().get("game")).containsKey("won"));
+    }
+
+    @Test
+    public void testFireShots(){
+        //given
+        GameModel gameModel = mock(GameModel.class);
+        when(gameModel.getWinnersId()).thenReturn(-1L);
+        when(gameService.findGameById(1)).thenReturn(gameModel);
+        //when
+        ResponseEntity<Map<String, Object>> result = playerController.fireShots(1, 1, new String[]{"1xA"});
+        //then
+        assertTrue(result.getStatusCode() == HttpStatus.OK);
+        assertTrue(((HashMap) result.getBody().get("game")).containsKey("player_turn"));
     }
 }

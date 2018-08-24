@@ -1,7 +1,9 @@
 package application.battleships.Services;
 
+import application.battleships.Exceptions.InvalidSalvoRequestException;
 import application.battleships.Exceptions.WrongGameIdException;
 import application.battleships.Exceptions.WrongPlayerIdException;
+import application.battleships.Models.CoordinatesModel;
 import application.battleships.Models.GameModel;
 import application.battleships.Models.PlayerModel;
 import application.battleships.Repsoitories.GameModelRepository;
@@ -10,10 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.Objects.nonNull;
 import static org.junit.Assert.assertTrue;
@@ -106,5 +105,86 @@ public class GameServiceTest {
         GameModel gameModel = mock(GameModel.class);
         when(gameModel.getPlayer1()).thenReturn(playerModel);
         return gameModel;
+    }
+
+    @Test (expected = InvalidSalvoRequestException.class)
+    public void testFireShotsInvalidSalvoRequestForPlayer1(){
+        //given
+        GameModel gameModel = createGame(1, 2);
+        when(gameModelRepository.findById(1L)).thenReturn(Optional.of(gameModel));
+        //when
+        Map<String, String> shotResults = gameService.fireShots(1, 1, new String[]{"1xA", "1xA"});
+        //then
+        fail();
+    }
+
+    @Test (expected = InvalidSalvoRequestException.class)
+    public void testFireShotsAtNonExistentField(){
+        //given
+        GameModel gameModel = createGame(1, 2);
+        when(gameModelRepository.findById(1L)).thenReturn(Optional.of(gameModel));
+        //when
+        Map<String, String> shotResults = gameService.fireShots(2, 1, new String[]{"0xZ"});
+        //then
+        fail();
+    }
+
+    @Test (expected = InvalidSalvoRequestException.class)
+    public void testFireShotsWithInvalidSalvoSyntax(){
+        //given
+        GameModel gameModel = createGame(1, 2);
+        when(gameModelRepository.findById(1L)).thenReturn(Optional.of(gameModel));
+        //when
+        Map<String, String> shotResults = gameService.fireShots(2, 1, new String[]{"1xAaa"});
+        //then
+        fail();
+    }
+
+    @Test (expected = InvalidSalvoRequestException.class)
+    public void testFireShotsInvalidSalvoRequestForPlayer2(){
+        //given
+        GameModel gameModel = createGame(1, 2);
+        when(gameModelRepository.findById(1L)).thenReturn(Optional.of(gameModel));
+        //when
+        Map<String, String> shotResults = gameService.fireShots(2, 1, new String[]{"1xA", "1xA"});
+        //then
+        fail();
+    }
+
+    @Test
+    public void testFireShots(){
+        //given
+        GameModel gameModel = createGame(1, 2);
+        when(gameModelRepository.findById(1L)).thenReturn(Optional.of(gameModel));
+        //when
+        Map<String, String> shotResults = gameService.fireShots(1, 1, new String[]{"1xA"});
+        //then
+        assertTrue("MISS".equals(shotResults.get("1xA")));
+    }
+
+    private GameModel createGame(long player1Id, long player2Id) {
+        GameModel gameModel = mock(GameModel.class);
+        PlayerModel player1 = mock(PlayerModel.class);
+        PlayerModel player2 = mock(PlayerModel.class);
+        when(player1.getId()).thenReturn(player1Id);
+        when(player2.getId()).thenReturn(player2Id);
+        when(gameModel.getPlayer1()).thenReturn(player1);
+        when(gameModel.getPlayer2()).thenReturn(player2);
+        ArrayList<ArrayList<CoordinatesModel>> notHitShips = new ArrayList<>();
+        notHitShips.add(new ArrayList<>());
+        when(gameModel.getPlayer1NotHitShipCoords()).thenReturn(notHitShips);
+        when(gameModel.getPlayer2NotHitShipCoords()).thenReturn(notHitShips);
+        when(gameModel.fireShot(1, 0, 0)).thenReturn("MISS");
+        return gameModel;
+    }
+
+    @Test (expected = WrongGameIdException.class)
+    public void testFireShotsWithInvalidGameId(){
+        //given
+        when(gameModelRepository.findById(1L)).thenReturn(Optional.empty());
+        //when
+        gameService.fireShots(1, 1, new String[]{"1xA"});
+        //then
+        fail();
     }
 }

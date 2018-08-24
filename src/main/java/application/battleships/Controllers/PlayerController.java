@@ -100,4 +100,24 @@ public class PlayerController {
         }
         return parsedGame;
     }
+
+    @PutMapping("/player/{playerId}/game/{gameId}")
+    public ResponseEntity<Map<String, Object>> fireShots(@PathVariable long playerId, @PathVariable long gameId, @RequestParam(name = "salvo") String[] shots){
+        playerService.getPlayerById(playerId);//validates that player exists
+        Map<String, Object> json = new HashMap<>();
+        json.put("salvo", gameService.fireShots(playerId, gameId, shots));
+        json.put("game", getPlayerTurnData(gameId));
+        return new ResponseEntity<>(json, HttpStatus.OK);
+    }
+
+    private Map<String, Object> getPlayerTurnData(long gameId) {
+        GameModel game = gameService.findGameById(gameId);
+        Map<String, Object> playerTurnData = new HashMap<>();
+        if(game.getWinnersId() == -1){
+            playerTurnData.put("player_turn", game.getPlayerOnTurnId());
+            return playerTurnData;
+        }
+        playerTurnData.put("won", game.getWinnersId());
+        return playerTurnData;
+    }
 }

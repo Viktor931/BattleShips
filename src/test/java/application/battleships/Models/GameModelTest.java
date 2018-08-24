@@ -1,13 +1,18 @@
 package application.battleships.Models;
 
+import application.battleships.Exceptions.GameFinishedException;
+import application.battleships.Exceptions.NotPlayersTurnException;
 import org.junit.Test;
 
 import javax.persistence.Id;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
+import static java.util.Objects.nonNull;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -116,5 +121,164 @@ public class GameModelTest {
         long winnersId = gameModel.getWinnersId();
         //then
         assertTrue(winnersId == 2);
+    }
+
+    @Test
+    public void testPlayer1NotHitCoords(){
+        //given
+        assertFalse(nonNull(gameModel.getPlayer1NotHitShipCoords()));
+        //when
+        gameModel.setPlayer1Ships(new ArrayList<>());
+        //then
+        assertTrue(nonNull(gameModel.getPlayer1NotHitShipCoords()));
+    }
+
+    @Test
+    public void testPlayer2NotHitCoords(){
+        //given
+        assertFalse(nonNull(gameModel.getPlayer2NotHitShipCoords()));
+        //when
+        gameModel.setPlayer2Ships(new ArrayList<>());
+        //then
+        assertTrue(nonNull(gameModel.getPlayer2NotHitShipCoords()));
+    }
+
+    @Test(expected = NotPlayersTurnException.class)
+    public void testFireShotNotPlayers1Turn(){
+        //given
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        //when
+        gameModel.fireShot(2, 0, 0);
+        //then
+        fail();
+    }
+
+    @Test(expected = NotPlayersTurnException.class)
+    public void testFireShotNotPlayers2Turn(){
+        //given
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        gameModel.nextTurn();
+        //when
+        gameModel.fireShot(1, 0, 0);
+        //then
+        fail();
+    }
+
+    @Test(expected = GameFinishedException.class)
+    public void testGameFinishedException(){
+        //given
+        gameModel.setStatus(1);//game won
+        //when
+        gameModel.fireShot(1, 0, 0);
+        //then
+        fail();
+    }
+
+    @Test
+    public void testFireShotMISS(){
+        //given
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        ArrayList<ArrayList<CoordinatesModel>> ships = new ArrayList<>();
+        ships.add(createOneDimensionalShip(0, 0));
+        gameModel.setPlayer2Ships(ships);
+        //when
+        String result = gameModel.fireShot(1, 1, 0);
+        //then
+        assertTrue("MISS".equals(result));
+    }
+
+    @Test
+    public void testFireShotHIT(){
+        //given
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        ArrayList<ArrayList<CoordinatesModel>> ships = new ArrayList<>();
+        ships.add(createTwoDimensionalShip(0, 0, 1, 0));
+        gameModel.setPlayer2Ships(ships);
+        //when
+        String result = gameModel.fireShot(1, 0, 0);
+        //then
+        assertTrue("HIT".equals(result));
+    }
+
+    private ArrayList<CoordinatesModel> createTwoDimensionalShip(int x1, int y1, int x2, int y2) {
+        ArrayList<CoordinatesModel> ship = new ArrayList<>();
+        ship.add(createCoordinates(x1, y1));
+        ship.add(createCoordinates(x2, y2));
+        return ship;
+    }
+
+    @Test
+    public void testFireShotKILLAsPlayer2(){
+        //given
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        gameModel.nextTurn();
+        ArrayList<ArrayList<CoordinatesModel>> ships = new ArrayList<>();
+        ships.add(createOneDimensionalShip(0, 0));
+        gameModel.setPlayer1Ships(ships);
+        gameModel.setPlayer2Ships(ships);
+        //when
+        String result = gameModel.fireShot(2, 0, 0);
+        //then
+        assertTrue("KILL".equals(result));
+    }
+
+    @Test
+    public void testFireShotKILLAsPlayer1(){
+        //given
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        ArrayList<ArrayList<CoordinatesModel>> ships = new ArrayList<>();
+        ships.add(createOneDimensionalShip(0, 0));
+        gameModel.setPlayer1Ships(ships);
+        gameModel.setPlayer2Ships(ships);
+        //when
+        String result = gameModel.fireShot(1, 0, 0);
+        //then
+        assertTrue("KILL".equals(result));
+    }
+
+    private ArrayList<CoordinatesModel> createOneDimensionalShip(int x, int y) {
+        ArrayList<CoordinatesModel> ship = new ArrayList<>();
+        ship.add(createCoordinates(x, y));
+        return ship;
+    }
+
+    private CoordinatesModel createCoordinates(int x, int y) {
+        CoordinatesModel coordinatesModel = mock(CoordinatesModel.class);
+        when(coordinatesModel.getX()).thenReturn(x);
+        when(coordinatesModel.getY()).thenReturn(y);
+        return coordinatesModel;
+    }
+
+    @Test
+    public void testGetShotsFiredPlayer1(){
+        //given
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        gameModel.setPlayer2Ships(new ArrayList<>());
+        assertTrue(gameModel.getPlayer1ShotsFired().isEmpty());
+        //when
+        gameModel.fireShot(1, 0, 0);
+        //then
+        assertTrue(gameModel.getPlayer1ShotsFired().size() == 1);
+    }
+
+    @Test
+    public void testGetShotsFiredPlayer2(){
+        //given
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        gameModel.setPlayer1Ships(new ArrayList<>());
+        gameModel.nextTurn();
+        assertTrue(gameModel.getPlayer2ShotsFired().isEmpty());
+        //when
+        gameModel.fireShot(2, 0, 0);
+        //then
+        assertTrue(gameModel.getPlayer2ShotsFired().size() == 1);
     }
 }
