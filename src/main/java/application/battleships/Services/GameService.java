@@ -1,5 +1,6 @@
 package application.battleships.Services;
 
+import application.battleships.Exceptions.GameFinishedException;
 import application.battleships.Exceptions.InvalidSalvoRequestException;
 import application.battleships.Exceptions.WrongGameIdException;
 import application.battleships.Exceptions.WrongPlayerIdException;
@@ -163,6 +164,9 @@ public class GameService {
         if(!game.isPresent()){
             throw new WrongGameIdException(String.valueOf(gameId));
         }
+        if(game.get().getWinnersId() != -1){
+            throw new GameFinishedException();
+        }
         if(game.get().getPlayer1().getId() == playerId && game.get().getPlayer1NotHitShipCoords().size() != shots.length){
             throw new InvalidSalvoRequestException();
         }
@@ -176,14 +180,38 @@ public class GameService {
     }
 
     private String processShot(String shot, long playerId, GameModel game) {
-        if(shot.length() != 3){
+        String[] coordinates = shot.split("x");
+        if(coordinates.length != 2 || coordinates[1].length() != 1){
             throw new InvalidSalvoRequestException();
         }
-        int x = shot.charAt(0) - 49;
-        int y = shot.charAt(2) - 65;
+        int x;
+        try{
+            x = Integer.valueOf(coordinates[0]) - 1;
+        } catch (Exception e){
+            throw new InvalidSalvoRequestException();
+        }
+        int y = coordinates[1].charAt(0) - 65;
         if(x < 0 || x > 9 || y < 0 || y > 9){
             throw new InvalidSalvoRequestException();
         }
         return game.fireShot(playerId, x, y);
+    }
+
+    public void turnOnAutoPilot(long playerId, long gameId) {
+        Optional<GameModel> gameModel = gameModelRepository.findById(gameId);
+        if(!gameModel.isPresent()){
+            throw new WrongGameIdException(String.valueOf(gameId));
+        }
+        if(gameModel.get().getPlayer1().getId() == playerId){
+            gameModel.get().turnOnAiForPlayer1();
+            gameModelRepository.save(gameModel.get());
+            return;
+        }
+        if(gameModel.get().getPlayer2().getId() == playerId){
+            gameModel.get().turnOnAiForPlayer2();
+            gameModelRepository.save(gameModel.get());
+            return;
+        }
+        throw new WrongPlayerIdException(String.valueOf(playerId));
     }
 }

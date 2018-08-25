@@ -166,16 +166,6 @@ public class GameModelTest {
         fail();
     }
 
-    @Test(expected = GameFinishedException.class)
-    public void testGameFinishedException(){
-        //given
-        gameModel.setStatus(1);//game won
-        //when
-        gameModel.fireShot(1, 0, 0);
-        //then
-        fail();
-    }
-
     @Test
     public void testFireShotMISS(){
         //given
@@ -280,5 +270,86 @@ public class GameModelTest {
         gameModel.fireShot(2, 0, 0);
         //then
         assertTrue(gameModel.getPlayer2ShotsFired().size() == 1);
+    }
+
+    @Test
+    public void testTurnAiForPlayer1(){
+        //given
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        gameModel.setPlayer1Ships(new ArrayList<>());
+        //when
+        gameModel.turnOnAiForPlayer1();
+        //then
+        assertTrue(gameModel.getPlayerOnTurnId() == 2);
+    }
+
+    @Test
+    public void testTurnAiForPlayer2(){
+        //given
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        gameModel.setPlayer2Ships(new ArrayList<>());
+        gameModel.nextTurn();
+        //when
+        gameModel.turnOnAiForPlayer2();
+        //then
+        assertTrue(gameModel.getPlayerOnTurnId() == 1);
+    }
+
+    @Test
+    public void testSettingBothPlayersToBots(){
+        //given
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        gameModel.setPlayer1Ships(new ArrayList<>());
+        gameModel.setPlayer2Ships(new ArrayList<>());
+        //when
+        gameModel.turnOnAiForPlayer1();
+        gameModel.turnOnAiForPlayer2();
+        //then
+        assertTrue(gameModel.getWinnersId() != -1);
+    }
+
+    @Test
+    public void testNextTurnWhenGameIsWon(){
+        //given
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        gameModel.setStatus(1);//game is not in progress anymore
+        long playerOnTurn = gameModel.getPlayerOnTurnId();
+        //when
+        gameModel.nextTurn();
+        //then
+        assertTrue(gameModel.getPlayerOnTurnId() == playerOnTurn);
+    }
+
+    @Test
+    public void testAiPlayingForPlayer1(){
+        //given
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        gameModel.setPlayer2Ships(new ArrayList<>());
+        gameModel.turnOnAiForPlayer2();
+        assertTrue(gameModel.getPlayerOnTurnId() == 1);
+        //when
+        gameModel.nextTurn();
+        //then
+        assertTrue(gameModel.getPlayerOnTurnId() == 1);
+    }
+
+    @Test
+    public void testAiPlayingForPlayer2(){
+        //given
+        gameModel.setPlayer1(playerModelMockWithId(1));
+        gameModel.setPlayer2(playerModelMockWithId(2));
+        gameModel.setPlayer1Ships(new ArrayList<>());
+        gameModel.turnOnAiForPlayer1();
+        gameModel.nextTurn();
+        assertTrue(gameModel.getPlayerOnTurnId() == 2);
+        //when
+        gameModel.nextTurn();
+        //then
+        assertTrue(gameModel.getPlayerOnTurnId() == 2);
     }
 }

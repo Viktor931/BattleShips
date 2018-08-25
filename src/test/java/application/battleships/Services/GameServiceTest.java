@@ -1,5 +1,6 @@
 package application.battleships.Services;
 
+import application.battleships.Exceptions.GameFinishedException;
 import application.battleships.Exceptions.InvalidSalvoRequestException;
 import application.battleships.Exceptions.WrongGameIdException;
 import application.battleships.Exceptions.WrongPlayerIdException;
@@ -175,6 +176,7 @@ public class GameServiceTest {
         when(gameModel.getPlayer1NotHitShipCoords()).thenReturn(notHitShips);
         when(gameModel.getPlayer2NotHitShipCoords()).thenReturn(notHitShips);
         when(gameModel.fireShot(1, 0, 0)).thenReturn("MISS");
+        when(gameModel.getWinnersId()).thenReturn(-1L);
         return gameModel;
     }
 
@@ -186,5 +188,72 @@ public class GameServiceTest {
         gameService.fireShots(1, 1, new String[]{"1xA"});
         //then
         fail();
+    }
+
+    @Test (expected = GameFinishedException.class)
+    public void testGameFinishedException(){
+        //given
+        GameModel gameModel = createGame(1, 2);
+        when(gameModelRepository.findById(1L)).thenReturn(Optional.of(gameModel));
+        when(gameModel.getWinnersId()).thenReturn(1L);
+        //when
+        gameService.fireShots(1, 1, new String[]{"1xA"});
+        //then
+        fail();
+    }
+
+    @Test (expected = InvalidSalvoRequestException.class)
+    public void testWrongShotSyntax(){
+        //given
+        GameModel gameModel = createGame(1, 2);
+        when(gameModelRepository.findById(1L)).thenReturn(Optional.of(gameModel));
+        when(gameModel.getWinnersId()).thenReturn(-1L);
+        //when
+        gameService.fireShots(1, 1, new String[]{"AxA"});
+        //then
+        fail();
+    }
+
+    @Test (expected = WrongGameIdException.class)
+    public void testTunOnAiForInvalidGame(){
+        //given
+        when(gameModelRepository.findById(1L)).thenReturn(Optional.empty());
+        //when
+        gameService.turnOnAutoPilot(1, 1);
+        //then
+        fail();
+    }
+
+    @Test (expected = WrongPlayerIdException.class)
+    public void testTunOnAiForInvalidPlayer(){
+        //given
+        GameModel gameModel = createGame(1, 2);
+        when(gameModelRepository.findById(1L)).thenReturn(Optional.of(gameModel));
+        //when
+        gameService.turnOnAutoPilot(11, 1);
+        //then
+        fail();
+    }
+
+    @Test
+    public void testTunOnAiForPlayer1(){
+        //given
+        GameModel gameModel = createGame(1, 2);
+        when(gameModelRepository.findById(1L)).thenReturn(Optional.of(gameModel));
+        //when
+        gameService.turnOnAutoPilot(1, 1);
+        //then
+        verify(gameModelRepository).save(gameModel);
+    }
+
+    @Test
+    public void testTunOnAiForPlayer2(){
+        //given
+        GameModel gameModel = createGame(1, 2);
+        when(gameModelRepository.findById(1L)).thenReturn(Optional.of(gameModel));
+        //when
+        gameService.turnOnAutoPilot(2, 1);
+        //then
+        verify(gameModelRepository).save(gameModel);
     }
 }

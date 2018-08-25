@@ -1,10 +1,10 @@
 package application.battleships.Models;
 
-import application.battleships.Exceptions.GameFinishedException;
 import application.battleships.Exceptions.NotPlayersTurnException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Entity
@@ -34,6 +34,9 @@ public class GameModel {
     private ArrayList<CoordinatesModel> player2ShotsFired = new ArrayList<>();
     private boolean isPlayerOnesTurn = true;
     private int status;
+    private boolean isPlayer1Bot = false;
+    private boolean isPlayer2Bot = false;
+    private Random random = new Random();
 
     public long getId() {
         return id;
@@ -82,7 +85,20 @@ public class GameModel {
     }
 
     public void nextTurn(){
+        if(status != IN_PROGRESS){
+            return;
+        }
         isPlayerOnesTurn = !isPlayerOnesTurn;
+        if(isPlayer1Bot && isPlayer2Bot){
+            status = random.nextBoolean() ? PLAYER1_WON : PLAYER2_WON;
+            return;
+        }
+        if(isPlayerOnesTurn && isPlayer1Bot){
+            playTurn(player1NotHitShipCoords, player1.getId());
+        }
+        if(!isPlayerOnesTurn && isPlayer2Bot){
+            playTurn(player2NotHitShipCoords, player2.getId());
+        }
     }
 
     public long getWinnersId(){
@@ -116,9 +132,6 @@ public class GameModel {
     }
 
     public String fireShot(long playerId, int x, int y){
-        if(status != IN_PROGRESS){
-            throw new GameFinishedException();
-        }
         if(playerId == player1.getId()){
             if(!isPlayerOnesTurn){
                 throw new NotPlayersTurnException();
@@ -160,5 +173,24 @@ public class GameModel {
         if(player2NotHitShipCoords.isEmpty()){
             status = PLAYER1_WON;
         }
+    }
+
+    public void turnOnAiForPlayer1(){
+        isPlayer1Bot = true;
+        if(isPlayerOnesTurn) {
+            playTurn(player1NotHitShipCoords, player1.getId());
+        }
+    }
+
+    public void turnOnAiForPlayer2(){
+        isPlayer2Bot = true;
+        if(!isPlayerOnesTurn) {
+            playTurn(player2NotHitShipCoords, player2.getId());
+        }
+    }
+
+    private void playTurn(ArrayList<ArrayList<CoordinatesModel>> friendlyShips, long playerId) {
+        friendlyShips.stream().forEach(ship -> fireShot(playerId, random.nextInt(10), random.nextInt(10)));
+        nextTurn();
     }
 }

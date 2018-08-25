@@ -120,4 +120,10 @@ public class PlayerController {
         playerTurnData.put("won", game.getWinnersId());
         return playerTurnData;
     }
+
+    @PutMapping("/player/{playerId}/game/{gameId}/autopilot")
+    public ResponseEntity<Map<String, Object>> turnOnAutoPilot(@PathVariable long playerId, @PathVariable long gameId){
+        gameService.turnOnAutoPilot(playerId, gameId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }

@@ -17,6 +17,7 @@ import java.util.*;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PlayerControllerTest {
@@ -170,5 +171,14 @@ public class PlayerControllerTest {
         //then
         assertTrue(result.getStatusCode() == HttpStatus.OK);
         assertTrue(((HashMap) result.getBody().get("game")).containsKey("player_turn"));
+    }
+
+    @Test
+    public void testTurnOnAutopilot(){
+        //when
+        ResponseEntity<Map<String, Object>> result = playerController.turnOnAutoPilot(1, 1);
+        //then
+        verify(gameService).turnOnAutoPilot(1, 1);
+        assertTrue(result.getStatusCode() == HttpStatus.NO_CONTENT);
     }
 }
